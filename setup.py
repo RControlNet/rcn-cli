@@ -11,7 +11,7 @@ setuptools.setup(
      description="CLI Interface for RCN",
      long_description=long_description,
      long_description_content_type="text/markdown",
-     url="https://github.com/mayank31313/ior-python",
+     url="https://github.com/mayank31313/rcn-cli",
      packages=setuptools.find_packages(),
      # packages=['rcn'],
      keywords=['ior','iot','network_robos', 'control_net'],
