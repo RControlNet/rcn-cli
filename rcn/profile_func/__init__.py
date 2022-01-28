@@ -4,7 +4,7 @@ from pick import pick
 
 from rcn import configDir, RCNHttpClient
 from rcn.utils import loadyaml, RCNConfig
-
+import shutil
 
 def ls():
     profiles = list(filter(lambda x: x.endswith(".yml"), os.listdir(configDir)))
@@ -16,6 +16,18 @@ def setDefault(profile):
     dst = os.path.join(configDir, f"default.yml")
 
     copyfile(src, dst)
+
+def delete(profile_name):
+    src = os.path.join(configDir, f"{profile_name}.yml")
+    rcnData = loadyaml(src)
+    dirName = os.path.join(configDir, rcnData['profile'])
+
+    if os.path.exists(dirName):
+        shutil.rmtree(dirName)
+
+    if os.path.exists(src):
+        os.remove(src)
+
 
 def configure(profile_name):
     src = os.path.join(configDir, f"{profile_name}.yml")
