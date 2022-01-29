@@ -14,6 +14,8 @@ def profile(actions):
         rcn.profile_func.setDefault(actions[1])
     elif actions[0] == "configure":
         rcn.profile_func.configure(actions[1])
+    elif actions[0] == "delete":
+        rcn.profile_func.delete(actions[1])
 
 def configure(profile, username=None):
     server_url = "http://localhost:8080/backend"
