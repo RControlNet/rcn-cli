@@ -45,7 +45,7 @@ def configure(profile_name):
     if videoServer.strip() == "":
         videoServer = "192.168.66.5"
 
-    httpClient = RCNHttpClient(server_url=rcnData['server'])
+    httpClient = RCNHttpClient(server=rcnData['server'])
     httpClient.setToken(rcnData['token'])
 
     connectionList = httpClient.getConnections()
