@@ -5,7 +5,9 @@ from yaml import SafeLoader, load, dump, SafeDumper
 import os
 from getpass import getpass
 import rcn.profile_func
-
+from rcn.models.profile import ProfileDomain
+from rcn.utils import saveObjectAsYaml
+from rcn.utils.cli import getInput
 
 def profile(actions):
     if actions[0] == "ls":
@@ -17,28 +19,22 @@ def profile(actions):
     elif actions[0] == "delete":
         rcn.profile_func.delete(actions[1])
 
-def configure(profile, username=None):
-    server_url = "http://localhost:8080/backend"
-    x = input(f"Server Url({server_url}): ")
-    if x.strip() != "":
-        server_url = x
-    username = input("Username: ")
-    password = getpass()
+def configure(profile, username=None, backendServer=None, **kwargs):
+    profileDomain = ProfileDomain()
 
-    kwargs = {
-        "server": server_url
-    }
-    client = RCNHttpClient(**kwargs)
+    profileDomain.backendServer = backendServer
+    if kwargs['stdinPassword']:
+        password = input().strip()
+    else:
+        password = getpass("").strip()
+
+    client = RCNHttpClient(server=profileDomain.backendServer)
     response = client.login({
         "username": username,
         "password": password
     }).json()
 
-    data = {
-        "server": server_url,
-        "token": response['jwt'],
-        "profile": profile
-    }
-    absPath = os.path.join(configDir, f"{profile}.yml")
-    with open(absPath, "w") as file:
-        dump(data, file)
+    profileDomain.token = response['jwt']
+    profileDomain.profile = profile
+
+    saveObjectAsYaml(profileDomain, profile, createFolder=False)

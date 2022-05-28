@@ -10,7 +10,7 @@ RControlNet CLI for setting up client for both IOR and RCN
 
 #### Configure profile
 
-    python -m rcn configure --profile default
+    python -m rcn login --profile default
     
 #### List Profiles
 

@@ -1,9 +1,10 @@
 from pathlib import Path
 
 import ruamel.yaml
-from yaml import load, SafeLoader, dump, SafeDumper
+from yaml import load, SafeLoader
 import os
 
+from rcn.models.profile import ProfileDomain
 
 configDir = f"{Path.home()}/.rcn/"
 if not os.path.exists(configDir):
@@ -26,21 +27,21 @@ class RCNConfig(object):
         self.filters = [RCNFilters(name="ior_research.utils.filterchains.RControlNetMessageFilter")]
         self.streamer = None
 
-    def dumpasfile(self, profile, filename="default"):
-        if not os.path.exists(os.path.join(configDir, profile)):
-            os.makedirs(os.path.join(configDir, profile))
-
-        filePath = os.path.join(configDir, profile, f"{filename}.yml")
-        with open(filePath, "w") as stream:
-            yaml.dump(self, stream)
+    def dumpasfile(self, profile):
+        saveObjectAsYaml(self, profile)
 
 yaml.register_class(RCNFilters)
 yaml.register_class(RCNConfig)
+yaml.register_class(ProfileDomain)
+
+def saveObjectAsYaml(obj, filename, createFolder=True):
+    if not os.path.exists(os.path.join(configDir, filename)):
+        os.makedirs(os.path.join(configDir, filename))
+
+    filePath = os.path.join(configDir, filename if createFolder else "", f"{filename}.yml")
+    with open(filePath, "w") as stream:
+        yaml.dump(obj, stream)
 
 def loadYamlAsClass(filePath):
     with open(filePath, "r") as stream:
         return yaml.load(stream)
-
-def loadyaml(filePath):
-    with open(filePath, "r") as stream:
-        return load(stream, Loader=SafeLoader)

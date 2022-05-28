@@ -4,7 +4,7 @@ from pathlib import Path
 import base64
 import logging
 
-from rcn.utils import loadyaml, configDir
+from rcn.utils import configDir, loadYamlAsClass
 
 
 # def saveToken(token, configDir=configDir):
@@ -22,17 +22,21 @@ from rcn.utils import loadyaml, configDir
 #     return token
 
 class RCNHttpClient:
-    def __init__(self, **kwargs):
+    def __init__(self, server):
         self.config = {
-            "server": "http://localhost:8080/backend",
-            **kwargs
+            "server": server
         }
         if os.path.exists(os.path.join(configDir, "default.yml")):
             self.loadToken()
 
     def loadToken(self, profile='default'):
-        rcnConfig = loadyaml(os.path.join(configDir, f"{profile}.yml"))
-        self.setToken(rcnConfig['token'])
+        rcnConfig = loadYamlAsClass(os.path.join(configDir, f"{profile}.yml"))
+        self.setToken(rcnConfig.token)
+
+    def triggerPipelineChange(self, newPipeline: dict, userID: str):
+        response = requests.post(f"{self.config['server'][:-7]}/video", {
+            "Authorization": f"Bearer {self.__token}"
+        })
 
     def setToken(self, token):
         self.__token = token

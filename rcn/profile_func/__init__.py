@@ -3,7 +3,7 @@ from shutil import copyfile
 from pick import pick
 
 from rcn import configDir, RCNHttpClient
-from rcn.utils import loadyaml, RCNConfig
+from rcn.utils import RCNConfig, loadYamlAsClass
 import shutil
 
 def ls():
@@ -19,8 +19,8 @@ def setDefault(profile):
 
 def delete(profile_name):
     src = os.path.join(configDir, f"{profile_name}.yml")
-    rcnData = loadyaml(src)
-    dirName = os.path.join(configDir, rcnData['profile'])
+    rcnData = loadYamlAsClass(src)
+    dirName = os.path.join(configDir, rcnData.profile)
 
     if os.path.exists(dirName):
         shutil.rmtree(dirName)
@@ -34,13 +34,16 @@ def configure(profile_name):
     if not os.path.exists(src):
         raise FileNotFoundError(f"RCN Profile not found at: {src}")
 
-    rcnData = loadyaml(src)
+    rcnData = loadYamlAsClass(src)
     dirName = os.path.join(configDir, rcnData['profile'])
 
     if not os.path.exists(dirName):
         os.makedirs(dirName)
 
     token = input("RCN Unique Token: ")
+    username = input("Username: ")
+    auth_token = input("Auth Token: ")
+
     videoServer = input("Video Server Host (192.168.66.5): ")
     if videoServer.strip() == "":
         videoServer = "192.168.66.5"
@@ -80,9 +83,10 @@ def configure(profile_name):
         "video": True,
         "audio": True
     }
+
     rcnConfig.credentials = {
-        "username": "admin",
-        "password": "admin"
+        "username": username,
+        "password": auth_token
     }
 
     rcnConfig.dumpasfile(profile=rcnData['profile'])
