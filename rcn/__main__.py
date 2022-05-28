@@ -19,7 +19,8 @@ if __name__ == "__main__":
     backendServer = namespace.__getattribute__('auth_server')
 
     if action == "login":
-        configure(profile=profile_name, username=username, backendServer=backendServer, stdinPassword=namespace.__getattribute__("password_stdin"))
+        configure(profile=profile_name, username=username, backendServer=backendServer,
+                  stdinPassword=namespace.__getattribute__("password_stdin"))
     # if actions[0] == "profile":
     #     profile(actions[1:])
 
