@@ -1,25 +1,95 @@
 import requests
 import os
-from pathlib import Path
-import base64
-import logging
+
+from cndi.annotations import Component
+from cndi.env import getContextEnvironment, loadEnvFromFile
 
 from rcn.utils import loadyaml, configDir
 
+@Component
+class RCNZmqFlowHttpClient:
+    """
+    RCNZmqFlowHttpClient: Client to configure the zmq processor server while using the Video Streaming in RCN
+    """
+    def __init__(self):
+        self.hostUrl = getContextEnvironment("rcn.hosts.zmq.url", defaultValue=None)
+        assert self.hostUrl is not None, "Zmq Host url cannot be null. check for rcn.hosts.zmq.url"
 
-# def saveToken(token, configDir=configDir):
-#     path = os.path.join(configDir, "token")
-#     if not os.path.exists(configDir):
-#         os.makedirs(configDir)
-#
-#     with open(path, "w") as file:
-#         file.write(base64.b64encode(token.encode()).decode())
-#
-# def loadToken(configDir=configDir):
-#     path = os.path.join(configDir, "token")
-#     with open(path, "r") as file:
-#         token = base64.b64decode(file.read(), validate=True)
-#     return token
+    def listConnectors(self):
+        response = requests.get(f"{self.hostUrl}/getConnectors")
+        return response.json()
+
+@Component
+class RCNVideoServerClient:
+    """
+    RCNVideoServer Client: Client to configure the Video Signaling Server for WebRTC
+    """
+    def __init__(self):
+        self.__token = None
+        self.hostUrl = getContextEnvironment("rcn.hosts.media.url", defaultValue=None)
+        self.subscriptionKeyEnabled = getContextEnvironment("rcn.client.security.enabled", defaultValue=False, castFunc=bool)
+        self.subscriptionKey = getContextEnvironment("rcn.client.security.apiKey", defaultValue=None)
+        if not self.subscriptionKeyEnabled:
+            raise ValueError(f"RCN Security disabled, security needs to be enabled from configuration rcn.client.security.enabled=True")
+        elif self.subscriptionKey is None:
+            raise NotImplementedError(f"Subscription Key cannot be null when rcn security is enabled")
+
+        assert self.hostUrl is not None, "Media Server url cannot be null, check for rcn.hosts.media.url"
+
+    def videoFilter(self, connectorName, action: str):
+        url = f"{self.hostUrl}/api/pipeline/element?connectorName={connectorName}"
+        if action.upper() == "ADD":
+             response = requests.post(url, headers={
+                    "subscriptionKey": self.subscriptionKey
+                })
+        elif action.upper() == "DELETE":
+            response = requests.delete(url, headers={
+                    "subscriptionKey": self.subscriptionKey
+                })
+
+        return response.json(), response.status_code
+
+class RCNBaseHttpClient:
+    def __init__(self):
+        self.subscriptionKeyEnabled = getContextEnvironment("rcn.client.security.enabled", defaultValue=False, castFunc=bool)
+        self.subscriptionKey = getContextEnvironment("rcn.client.security.apiKey", defaultValue=None)
+        if not self.subscriptionKeyEnabled:
+            raise ValueError(f"RCN Security disabled, security needs to be enabled from configuration rcn.client.security.enabled=True")
+        elif self.subscriptionKey is None:
+            raise NotImplementedError(f"Subscription Key cannot be null when rcn security is enabled")
+
+
+    def get(self, url, params={}):
+        return requests.get(url, params=params, headers={
+            "subscriptionKey": self.subscriptionKey
+        })
+
+    def post(self, url, params={}, body={}):
+        return requests.post(url, params=params, json=body, headers={
+            "subscriptionKey": self.subscriptionKey
+        })
+
+@Component
+class RCNTunnelServerClient(RCNBaseHttpClient):
+    """
+    RCNTunnelServerClient: Client to configure the RCN Tunnel Client
+    """
+    def __init__(self):
+        RCNBaseHttpClient.__init__(self)
+        self.hostUrl = getContextEnvironment("rcn.hosts.tunnel.url", defaultValue=None)
+        assert self.hostUrl is not None, "Tunnel Server url cannot be null, check for rcn.hosts.tunnel.url"
+
+    def checkForAvailableDevice(self, deviceCode):
+        url = f"{self.hostUrl}/api/connections/device/available?deviceCode={deviceCode}"
+        response = self.get(url)
+
+        if response.status_code == 200:
+            return response.content.decode().lower() == "true", response.status_code
+
+        return False, response.status_code
+
+    def forwardMessage(self, deviceCode, socketMessage):
+        url = f"{self.hostUrl}/api/drone/"
 
 class RCNHttpClient:
     def __init__(self, **kwargs):
