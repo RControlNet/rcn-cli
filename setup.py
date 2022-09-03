@@ -3,9 +3,11 @@ import setuptools
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+VERSION = "2.0.0"
+
 setuptools.setup(
      name='rcn',
-     version='1',
+     version=f'{VERSION}',
      author="Mayank Shinde",
      author_email="mayank31313@gmail.com",
      description="CLI Interface for RCN",
