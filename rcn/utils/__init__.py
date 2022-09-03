@@ -4,8 +4,11 @@ import ruamel.yaml
 from yaml import load, SafeLoader, dump, SafeDumper
 import os
 
+if "RCN_HOME" not in os.environ:
+    os.environ['RCN_HOME'] = f"{Path.home()}/.rcn/"
 
-configDir = f"{Path.home()}/.rcn/"
+configDir = os.environ['RCN_HOME']
+
 if not os.path.exists(configDir):
     os.makedirs(configDir)
 

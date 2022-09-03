@@ -1,25 +1,21 @@
 import requests
 import os
 
-from cndi.annotations import Component
 from cndi.env import getContextEnvironment, loadEnvFromFile
 
 from rcn.utils import loadyaml, configDir
 
-@Component
 class RCNZmqFlowHttpClient:
     """
     RCNZmqFlowHttpClient: Client to configure the zmq processor server while using the Video Streaming in RCN
     """
     def __init__(self):
         self.hostUrl = getContextEnvironment("rcn.hosts.zmq.url", defaultValue=None)
-        assert self.hostUrl is not None, "Zmq Host url cannot be null. check for rcn.hosts.zmq.url"
 
     def listConnectors(self):
         response = requests.get(f"{self.hostUrl}/getConnectors")
         return response.json()
 
-@Component
 class RCNVideoServerClient:
     """
     RCNVideoServer Client: Client to configure the Video Signaling Server for WebRTC
@@ -69,7 +65,16 @@ class RCNBaseHttpClient:
             "subscriptionKey": self.subscriptionKey
         })
 
-@Component
+class RCNBackendServerClient(RCNBaseHttpClient):
+    def __init__(self):
+        RCNBaseHttpClient.__init__(self)
+        self.serverUrl = getContextEnvironment("rcn.hosts.tunnel.url")
+
+    def issueVideoSession(self):
+        response = self.post(f"{self.serverUrl}/videosession", body={
+
+        })
+
 class RCNTunnelServerClient(RCNBaseHttpClient):
     """
     RCNTunnelServerClient: Client to configure the RCN Tunnel Client
@@ -136,7 +141,6 @@ class RCNHttpClient:
             "Authorization": f"Bearer {self.__token}"
         })
         return response.text
-
 
     def getSupportedDevices(self):
         response = requests.get(f"{self.config['server']}/public/api/supported")

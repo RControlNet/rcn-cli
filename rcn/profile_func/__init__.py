@@ -1,9 +1,9 @@
 import os
 from shutil import copyfile
 from pick import pick
+from rcn.rcn_http.http_client import RCNHttpClient
 
-from rcn import configDir, RCNHttpClient
-from rcn.utils import loadyaml, RCNConfig
+from rcn.utils import loadyaml, RCNConfig, configDir
 import shutil
 
 def ls():

@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from rcn.http.client import RCNHttpClient
+from rcn.rcn_http.http_client import RCNHttpClient
 
 
 class TestRCNHttpClient(TestCase):
